@@ -1,32 +1,65 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import faker from "faker";
-import CommentDetail from "./CommentDetail";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import SeasonDisplay from './SeasonDisplay';
+import Loader from './Loader';
+// const App = () => {
+//   return (
+//     <div>Hello there!
+//       <SeasonDisplay/>
+//     </div>
+//   )
+// };
 
-if (module.hot) {
-  module.hot.accept();
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      lat: null,
+      errorMessage: ''
+    };
+
+  }
+
+  componentDidMount() {
+    window.navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.setState({lat: position.coords.latitude});
+        console.log(position)
+      },
+      (err) => {
+        this.setState({errorMessage: err.message});
+      }
+    );
+  }
+
+  renderContent() {
+    if (this.state.errorMessage && !this.state.lat) {
+      return (
+        <div>
+          Error message: {this.state.errorMessage}
+        </div>
+      );
+    } else if (!this.state.errorMessage && this.state.lat) {
+      return (
+        <SeasonDisplay lat={this.state.lat}></SeasonDisplay>
+      );
+    } else {
+      return (
+        <Loader message="Waiting for location data..."/>
+      );
+    }
+  }
+
+  render() {
+    return (
+      <div>{this.renderContent()}</div>
+    );
+  }
 }
 
-const App = () => {
-  return (
-    <div className="ui container comments">
-      <CommentDetail 
-        author="Sam" 
-        timeAgo="Today at 4:45PM" 
-        imgUrl={faker.image.image()}
-        comment="Nice tutorial"/>
-      <CommentDetail 
-        author="Alex" 
-        timeAgo="Today at 2:00AM" 
-        imgUrl={faker.image.image()}
-        comment="What a nice day!" />
-      <CommentDetail 
-        author="Jane" 
-        timeAgo="Yesterday at 5:00PM" 
-        imgUrl={faker.image.image()}
-        comment="Lets fly away." />
-    </div>
-  );
-};
-
-ReactDOM.render(<App />, document.querySelector("#root"));
+ReactDOM.render(
+  <React.StrictMode>
+    <App/>
+  </React.StrictMode>,
+  document.getElementById('root')
+);
